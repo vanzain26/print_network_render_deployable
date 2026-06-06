@@ -631,6 +631,38 @@ def api_status(connection_id):
     return jsonify({"ok": True, "status": conn.status, "node_type": conn.node_type, "author_node_active": author_active, "last_seen_at": dt_filter(conn.last_seen_at)})
 
 
+
+@app.get("/api/routing/active-devices")
+def api_active_devices():
+    devices = Connection.query.filter_by(node_type="device_node", status="active").order_by(Connection.last_seen_at.desc()).all()
+    rows = []
+    for c in devices:
+        d = c.device
+        u = c.user
+        rows.append({
+            "connection_id": c.connection_id,
+            "display_name": c.display_name,
+            "status": c.status,
+            "last_seen_at": dt_filter(c.last_seen_at),
+            "tier_level": d.tier_level if d else (u.tier_level if u else 0),
+            "capabilities_json": c.capabilities_json,
+            "device": {
+                "id": d.id,
+                "device_name": d.device_name,
+                "device_identifier": d.device_identifier,
+                "installed_nozzle_mm": d.installed_nozzle_mm,
+                "loaded_material": d.loaded_material,
+                "allowed_to_receive_jobs": d.allowed_to_receive_jobs,
+                "approval_status": d.approval_status,
+            } if d else None,
+            "user": {
+                "id": u.id,
+                "name": u.name,
+                "facility_id": u.facility_id,
+            } if u else None,
+        })
+    return jsonify({"ok": True, "devices": rows})
+
 @app.post("/api/routing/disconnect")
 def api_disconnect():
     data = request.get_json(silent=True) or request.form
@@ -819,6 +851,10 @@ def api_acknowledge_job():
         return api_error("Author node does not own this job.", 403)
     if job.paid_at or job.status == "paid":
         return api_error("Job already paid; duplicate acknowledgement rejected.", 409)
+    if job.status in ["aborted", "failed"]:
+        job.status = job.status + "_acknowledged"
+        db.session.commit()
+        return jsonify({"ok": True, "status": job.status, "payment_cents": 0})
     if job.status != "completed_pending_author_ack":
         return api_error(f"Job is not ready for acknowledgement: {job.status}", 409)
     device_conn = Connection.query.filter_by(connection_id=job.assigned_device_connection_id).first()
@@ -837,6 +873,25 @@ def api_acknowledge_job():
     db.session.commit()
     return jsonify({"ok": True, "status": job.status, "payment_cents": amount})
 
+
+
+@app.get("/api/jobs/device-status")
+def api_device_job_status():
+    conn = Connection.query.filter_by(connection_id=request.args.get("device_connection_id", "")).first()
+    if not conn or conn.node_type != "device_node":
+        return api_error("Active device node connection required.", 403)
+    job_id = request.args.get("job_id", "")
+    job = JobInstance.query.filter_by(job_id=job_id).first() if job_id else None
+    if job and job.assigned_device_connection_id != conn.connection_id:
+        return api_error("Job is not assigned to this device.", 403)
+    ensure_wallet(conn.user)
+    last_entry = LedgerEntry.query.filter_by(to_user_id=conn.user_id).order_by(LedgerEntry.created_at.desc()).first()
+    return jsonify({
+        "ok": True,
+        "job": serialize_job(job, include_payload=False) if job else None,
+        "last_received_cents": last_entry.amount_cents if last_entry else 0,
+        "total_received_cents": conn.user.wallet.total_received_cents if conn.user and conn.user.wallet else 0,
+    })
 
 @app.get("/api/jobs/author-completions")
 def api_author_completions():

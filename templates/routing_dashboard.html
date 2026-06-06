@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h1>Routing hub</h1>
+  <p>Central view of registered node connections, print job instances, and simulated settlement records.</p>
+</section>
+<section class="card">
+  <h2>Connections</h2>
+  <table>
+    <tr><th>Status</th><th>Connection</th><th>Type</th><th>Name</th><th>User</th><th>Device</th><th>Last seen</th><th>Controls</th></tr>
+    {% for c in connections %}
+    <tr>
+      <td><span class="dot {{ c.status }}"></span> {{ c.status }}</td><td class="mono">{{ c.connection_id }}</td><td>{{ c.node_type }}</td><td>{{ c.display_name }}</td><td>{{ c.user.email if c.user else '—' }}</td><td>{{ c.device.device_name if c.device else '—' }}</td><td>{{ c.last_seen_at|dt }}</td>
+      <td class="controls">
+        {% for action in ['activate','suspend','reset','kill'] %}<form method="post" action="{{ url_for('manage_connection', conn_id=c.id, action=action) }}"><button class="button small {% if action in ['suspend','kill'] %}danger{% endif %}">{{ action }}</button></form>{% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+<section class="card">
+  <h2>Recent job instances</h2>
+  <table>
+    <tr><th>Status</th><th>Job ID</th><th>Author job code</th><th>Batch</th><th>File</th><th>Price</th><th>Started</th><th>Completed</th><th>Paid</th><th>Duplicates</th></tr>
+    {% for j in jobs %}
+    <tr class="{% if j.paid_at %}muted-row{% endif %}"><td><span class="badge {{ j.status }}">{{ j.status }}</span></td><td class="mono">{{ j.job_id }}</td><td class="mono">{{ j.author_job_code }}</td><td>{{ j.batch.batch_code }}</td><td>{{ j.gcode_filename }}</td><td>{{ j.payment_cents|money }}</td><td>{{ j.started_at|dt }}</td><td>{{ j.completed_at|dt }}</td><td>{{ j.paid_at|dt }}</td><td>{{ j.duplicate_completion_count }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+<section class="card">
+  <h2>Ledger</h2>
+  <table>
+    <tr><th>Time</th><th>Amount</th><th>From</th><th>To</th><th>Reason</th></tr>
+    {% for e in ledger %}<tr><td>{{ e.created_at|dt }}</td><td>{{ e.amount_cents|money }}</td><td>{{ e.from_user.email if e.from_user else '—' }}</td><td>{{ e.to_user.email if e.to_user else '—' }}</td><td>{{ e.reason }}</td></tr>{% endfor %}
+  </table>
+</section>
+{% endblock %}

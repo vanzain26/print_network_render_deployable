@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ user.name }}</h1>
+  <p class="muted">Admin/moderator views intentionally do not show wallet balances.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="save">
+    <label>Email <input value="{{ user.email }}" disabled></label>
+    <label>Requested role <input value="{{ user.requested_role }}" disabled></label>
+    <label>Approved role <select name="approved_role">{% for role in roles %}<option value="{{ role }}" {% if user.approved_role == role %}selected{% endif %}>{{ role }}</option>{% endfor %}</select></label>
+    <label>Account status <select name="account_status">{% for s in states %}<option value="{{ s }}" {% if user.account_status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+    <label>Tier level <input name="tier_level" type="number" min="0" max="5" value="{{ user.tier_level }}"></label>
+    <label>Moderator/admin notes <textarea name="notes" rows="5">{{ user.notes }}</textarea></label>
+    <button class="button primary" type="submit">Save user</button>
+  </form>
+  {% if current_user.is_admin_superuser and not user.is_admin_superuser %}
+  <form method="post" class="danger-zone"><input type="hidden" name="action" value="delete"><button class="button danger">Delete account</button></form>
+  {% endif %}
+</section>
+{% endblock %}

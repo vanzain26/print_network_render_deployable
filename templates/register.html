@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h1>Register</h1>
+  <form method="post" class="stack">
+    <label>Name <input name="name" required></label>
+    <label>Email <input name="email" type="email" required></label>
+    <label>Password <input name="password" type="password" required></label>
+    <label>Requested role
+      <select name="requested_role">
+        {% for role in roles %}<option value="{{ role }}">{{ role }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Facility name <input name="facility_name"></label>
+    <label>Facility ID <input name="facility_id" placeholder="Optional; can be assigned later"></label>
+    <button class="button primary" type="submit">Submit registration</button>
+  </form>
+</section>
+{% endblock %}

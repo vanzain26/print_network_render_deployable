@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero card">
+  <h1>Remote Print Network</h1>
+  <p>A hosted demo of the registration portal and routing hub for authorized, auditable remote print-job routing.</p>
+  <div class="actions">
+    <a class="button primary" href="{{ url_for('register') }}">Register an account</a>
+    <a class="button" href="{{ url_for('login') }}">Log in</a>
+  </div>
+</section>
+<section class="grid four">
+  <div class="metric"><strong>{{ stats.users }}</strong><span>Users</span></div>
+  <div class="metric"><strong>{{ stats.devices }}</strong><span>Devices</span></div>
+  <div class="metric"><strong>{{ stats.connections }}</strong><span>Connections</span></div>
+  <div class="metric"><strong>{{ stats.jobs }}</strong><span>Job instances</span></div>
+</section>
+<section class="card">
+  <h2>Naming note</h2>
+  <p>This hosted version uses readable names only: <b>registration portal</b> and <b>routing hub</b>. The older module-number naming is intentionally avoided in the UI and README.</p>
+</section>
+{% endblock %}

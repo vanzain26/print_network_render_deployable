@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h1>Register device</h1>
+  <form method="post" class="stack">
+    <label>Device name <input name="device_name" required></label>
+    <label>Device identifier <input name="device_identifier" placeholder="Optional unique ID"></label>
+    <label>Printer model <input name="printer_model"></label>
+    <label>Installed nozzle mm <input name="installed_nozzle_mm" value="0.4"></label>
+    <label>Loaded material <input name="loaded_material" value="PLA"></label>
+    <label>Declared capabilities <textarea name="declared_capabilities" rows="5" placeholder="Build volume, nozzles supported, filaments, camera status, etc."></textarea></label>
+    <button class="button primary" type="submit">Register device</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ device.device_name }}</h1>
+  <form method="post" class="stack">
+    <label>Owner <input value="{{ device.owner.email }}" disabled></label>
+    <label>Approval status <select name="approval_status"><option value="pending" {% if device.approval_status=='pending' %}selected{% endif %}>pending</option><option value="active" {% if device.approval_status=='active' %}selected{% endif %}>active</option><option value="paused" {% if device.approval_status=='paused' %}selected{% endif %}>paused</option><option value="suspended" {% if device.approval_status=='suspended' %}selected{% endif %}>suspended</option></select></label>
+    <label><input type="checkbox" name="allowed_to_receive_jobs" {% if device.allowed_to_receive_jobs %}checked{% endif %}> Allowed to receive jobs</label>
+    <label>Tier level <input name="tier_level" type="number" min="0" max="5" value="{{ device.tier_level }}"></label>
+    <label>Installed nozzle mm <input name="installed_nozzle_mm" value="{{ device.installed_nozzle_mm }}"></label>
+    <label>Loaded material <input name="loaded_material" value="{{ device.loaded_material }}"></label>
+    <label>Declared capabilities <textarea name="declared_capabilities" rows="6">{{ device.declared_capabilities }}</textarea></label>
+    <button class="button primary">Save device</button>
+  </form>
+</section>
+{% endblock %}

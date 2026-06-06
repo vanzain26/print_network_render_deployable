@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h1>Manage devices</h1>
+  <table>
+    <tr><th>Name</th><th>Owner</th><th>Identifier</th><th>Status</th><th>Receive jobs</th><th>Tier</th><th>Nozzle</th><th>Material</th><th></th></tr>
+    {% for d in devices %}<tr><td>{{ d.device_name }}</td><td>{{ d.owner.email }}</td><td>{{ d.device_identifier }}</td><td>{{ d.approval_status }}</td><td>{{ 'yes' if d.allowed_to_receive_jobs else 'no' }}</td><td>{{ d.tier_level }}</td><td>{{ d.installed_nozzle_mm }}</td><td>{{ d.loaded_material }}</td><td><a class="button small" href="{{ url_for('admin_device_detail', device_id=d.id) }}">Open</a></td></tr>{% endfor %}
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="grid two">
+  <div class="card">
+    <h1>Registration portal</h1>
+    <table class="kv">
+      <tr><th>Name</th><td>{{ current_user.name }}</td></tr>
+      <tr><th>Email</th><td>{{ current_user.email }}</td></tr>
+      <tr><th>Requested role</th><td>{{ current_user.requested_role }}</td></tr>
+      <tr><th>Approved role</th><td>{{ current_user.approved_role }}</td></tr>
+      <tr><th>Account status</th><td><span class="badge {{ current_user.account_status }}">{{ current_user.account_status }}</span></td></tr>
+      <tr><th>Tier</th><td>{{ current_user.tier_level }}</td></tr>
+      <tr><th>Facility</th><td>{{ current_user.facility_name }} / {{ current_user.facility_id }}</td></tr>
+      <tr><th>Simulated balance</th><td>{{ current_user.wallet.simulated_balance_cents|money if current_user.wallet else '$0.00' }}</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Node activation codes</h2>
+    <p>Registration portal codes are persistent credentials. They remain usable until you deactivate them here.</p>
+    <form method="post" action="{{ url_for('generate_session_code') }}" class="inline-form">
+      <select name="device_id">
+        <option value="">No device / author node</option>
+        {% for d in devices %}<option value="{{ d.id }}">{{ d.device_name }} — {{ d.device_identifier }}</option>{% endfor %}
+      </select>
+      <button class="button success" type="submit">Generate session code</button>
+    </form>
+    {% set active_codes = codes|selectattr('active')|list %}
+    {% if active_codes %}
+      <form method="post" action="{{ url_for('deactivate_session_code', code_id=active_codes[0].id) }}" class="inline-form danger-zone">
+        <button class="button danger" type="submit">Deactivate active code</button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+<section class="card">
+  <div class="split"><h2>Registered devices</h2><a class="button" href="{{ url_for('new_device') }}">Register device</a></div>
+  <table>
+    <tr><th>Name</th><th>Identifier</th><th>Model</th><th>Approved</th><th>Receive jobs</th><th>Tier</th><th>Nozzle</th><th>Material</th></tr>
+    {% for d in devices %}<tr><td>{{ d.device_name }}</td><td>{{ d.device_identifier }}</td><td>{{ d.printer_model }}</td><td>{{ d.approval_status }}</td><td>{{ 'yes' if d.allowed_to_receive_jobs else 'no' }}</td><td>{{ d.tier_level }}</td><td>{{ d.installed_nozzle_mm }}</td><td>{{ d.loaded_material }}</td></tr>{% endfor %}
+  </table>
+</section>
+<section class="card">
+  <h2>Recent session codes</h2>
+  <table>
+    <tr><th>Code</th><th>Device</th><th>State</th><th>Last used</th><th>Use count</th><th>Created</th><th>Action</th></tr>
+    {% for c in codes %}
+      <tr>
+        <td class="mono {% if c.active and not c.deactivated_at %}active-code{% endif %}">{{ c.code }}</td>
+        <td>{{ c.device.device_name if c.device else 'author / general' }}</td>
+        <td>{% if c.active and not c.deactivated_at %}<span class="badge active">active</span>{% else %}<span class="badge inactive">inactive</span>{% endif %}</td>
+        <td>{{ c.last_used_at|dt }}</td><td>{{ c.use_count }}</td><td>{{ c.created_at|dt }}</td>
+        <td>{% if c.active and not c.deactivated_at %}<form method="post" action="{{ url_for('deactivate_session_code', code_id=c.id) }}"><button class="button danger small">Deactivate</button></form>{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</section>
+{% if current_user.can_moderate %}
+<section class="card"><h2>Administration</h2><a class="button" href="{{ url_for('admin_users') }}">Manage users</a> <a class="button" href="{{ url_for('admin_devices') }}">Manage devices</a> <a class="button" href="{{ url_for('routing_dashboard') }}">Open routing hub</a></section>
+{% endif %}
+{% endblock %}

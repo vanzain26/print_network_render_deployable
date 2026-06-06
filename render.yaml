@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: print-network-demo
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@example.com
+      - key: ADMIN_INITIAL_PASSWORD
+        value: change-this-before-demo
+      - key: DATABASE_URL
+        fromDatabase:
+          name: print-network-db
+          property: connectionString
+
+databases:
+  - name: print-network-db
+    plan: free
